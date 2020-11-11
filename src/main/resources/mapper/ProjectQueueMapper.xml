@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "Http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ac.kr.korea.cdm.serviceserver.mapper.ProjectQueueMapper">
+    <resultMap type="ac.kr.korea.cdm.serviceserver.dto.ProjectQueueDto" id="projectQueueDtoResult">
+        <result column="id" property="id"/>
+        <result column="analysis_project_id" property="analysisProjectId"/>
+        <result column="analysis_file_id" property="analysisFileId"/>
+        <result column="username" property="userName"/>
+        <result column="request_time" property="requestTime"/>
+        <result column="dir_unzip" property="dirUnzip"/>
+        <result column="dir_output" property="dirOutput"/>
+        <result column="status" property="status"/>
+        <result column="secret_key" property="sk"/>
+        <result column="initial_vector" property="iv"/>
+        <result column="approved_to_run" property="approvedToRun"/>
+        <result column="approved_to_read" property="approvedToRead"/>
+    </resultMap>
+
+    <parameterMap type="ac.kr.korea.cdm.serviceserver.dto.ProjectQueueDto" id="projectQueueDtoParam">
+        <parameter property="id"/>
+        <parameter property="analysisProjectId"/>
+        <parameter property="analysisFileId"/>
+        <parameter property="userName"/>
+        <parameter property="requestTime"/>
+        <parameter property="dirUnzip"/>
+        <parameter property="dirOutput"/>
+        <parameter property="status"/>
+        <parameter property="sk"/>
+        <parameter property="iv"/>
+        <parameter property="approvedToRun"/>
+        <parameter property="approvedToRead"/>
+    </parameterMap>
+
+    <select id="getOne" parameterMap="projectQueueDtoParam" resultMap="projectQueueDtoResult">
+        SELECT *
+        FROM
+            project_queue
+        WHERE
+            id = #{id}
+        LIMIT 1;
+    </select>
+
+    <select id="getWaitOne" resultMap="projectQueueDtoResult">
+        SELECT
+            id,
+            analysis_project_id,
+            analysis_file_id,
+            username,
+            request_time,
+            dir_unzip,
+            dir_output,
+            status,
+            secret_key,
+            initial_vector,
+            approved_to_run,
+            approved_to_read
+        FROM
+            project_queue
+        WHERE
+            status = 'wait'
+            AND approved_to_run = TRUE
+        ORDER BY request_time ASC
+        LIMIT 1;
+    </select>
+
+    <select id="getOneForCheckingStatus" parameterMap="projectQueueDtoParam" resultMap="projectQueueDtoResult">
+        SELECT
+            id,
+            analysis_project_id,
+            analysis_file_id,
+            username,
+            request_time,
+            dir_unzip,
+            dir_output,
+            status,
+            secret_key,
+            initial_vector,
+            approved_to_run,
+            approved_to_read
+        FROM
+            project_queue
+        WHERE
+            analysis_project_id = #{analysisProjectId}
+            AND analysis_file_id = #{analysisFileId}
+            AND username = #{userName}
+        ORDER BY request_time DESC
+        LIMIT 1;
+    </select>
+
+    <select id="getAll" resultMap="projectQueueDtoResult">
+        SELECT *
+        FROM project_queue
+        ORDER BY analysis_file_id DESC;
+    </select>
+
+    <insert id="insertOne" parameterMap="projectQueueDtoParam">
+        INSERT INTO project_queue
+        (
+            analysis_project_id,
+            analysis_file_id,
+            username,
+            request_time,
+            dir_unzip,
+            dir_output,
+            status,
+            approved_to_run,
+            approved_to_read
+        )
+        VALUES
+        (
+            #{analysisProjectId},
+            #{analysisFileId},
+            #{userName},
+            #{requestTime ,
+            javaType=java.sql.Timestamp,jdbcType=TIMESTAMP},
+            #{dirUnzip},
+            #{dirOutput},
+            #{status},
+            #{approvedToRun},
+            #{approvedToRead}
+        );
+    </insert>
+
+    <update id="modifyOne" parameterMap="projectQueueDtoParam">
+        UPDATE project_queue
+        SET status=#{status}
+        WHERE
+            id = #{id}
+        ;
+    </update>
+
+    <update id="updateSecret" parameterMap="projectQueueDtoParam">
+        UPDATE project_queue
+        SET secret_key = #{sk}, initial_vector = #{iv}
+        WHERE
+            id = #{id}
+        ;
+    </update>
+
+    <update id="approveRun" parameterMap="projectQueueDtoParam">
+        UPDATE project_queue
+        SET approved_to_run = TRUE
+        WHERE
+            id = #{id}
+        ;
+    </update>
+
+    <update id="approveRead" parameterMap="projectQueueDtoParam">
+        UPDATE project_queue
+        SET approved_to_read = TRUE
+        WHERE
+            id = #{id}
+        ;
+    </update>
+
+    <select id="getSecret" parameterMap="projectQueueDtoParam" resultMap="projectQueueDtoResult">
+        SELECT
+            id,
+            secret_key,
+            initial_vector
+        FROM
+            project_queue
+        WHERE
+            analysis_project_id = #{analysisProjectId}
+            AND analysis_file_id = #{analysisFileId}
+            AND username = #{userName}
+        ORDER BY request_time DESC
+        LIMIT 1;
+    </select>
+
+</mapper>
